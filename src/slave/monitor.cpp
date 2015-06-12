@@ -143,6 +143,9 @@ private:
       }
     }
 
+    protobuf::write("/home/skonefal/mesos_stats.json", future.get());
+    LOG(INFO) << "SOMETHING WRTITTEN";
+
     return http::OK(result, request.query.get("jsonp"));
   }
 
