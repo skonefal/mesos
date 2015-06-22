@@ -98,6 +98,9 @@ protected:
     route("/statistics.json",
           STATISTICS_HELP(),
           &ResourceMonitorProcess::statistics);
+    route("/serenity_statistcs.json",
+          STATISTICS_HELP(),
+          &ResourceMonitorProcess::serenityStatistics);
   }
 
 private:
@@ -144,6 +147,35 @@ private:
     }
 
     return http::OK(result, request.query.get("jsonp"));
+  }
+
+  // Returns the monitoring statistics. Requests have no parameters.
+  Future<http::Response> serenityStatistics(const http::Request& request)
+  {
+    return limiter.acquire()
+        .then(defer(self(), &Self::_serenityStatistics, request));
+  }
+
+  Future<http::Response> _serenityStatistics(const http::Request& request)
+  {
+    return usage()
+        .then(defer(self(), &Self::__serenityStatistics, lambda::_1, request));
+  }
+
+  Future<http::Response> __serenityStatistics(
+      const Future<ResourceUsage>& future,
+      const http::Request& request)
+  {
+    if (!future.isReady()) {
+      LOG(WARNING) << "Could not collect resource usage: "
+      << (future.isFailed() ? future.failure() : "discarded");
+
+      return http::InternalServerError();
+    }
+
+    JSON::Protobuf serenityResourceUsage(future.get());
+
+    return http::OK(serenityResourceUsage, request.query.get("jsonp"));
   }
 
   // Callback used to retrieve resource usage information from slave.
