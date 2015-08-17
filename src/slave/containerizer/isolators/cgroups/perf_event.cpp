@@ -400,14 +400,14 @@ void CgroupsPerfEventIsolatorProcess::sample()
     // process exit. If the sample is not ready after the timeout
     // something very unexpected has occurred so we discard it and
     // halt all sampling.
-    Duration timeout = flags.perf_duration + Seconds(2);
+    // Duration timeout = flags.perf_duration + Seconds(2);
 
     perf::sample(events, cgroups, flags.perf_duration)
-      .after(timeout,
-             lambda::bind(&discardSample,
-                          lambda::_1,
-                          flags.perf_duration,
-                          timeout))
+      // .after(timeout,
+      //       lambda::bind(&discardSample,
+      //                    lambda::_1,
+      //                    flags.perf_duration,
+      //                    timeout))
       .onAny(defer(PID<CgroupsPerfEventIsolatorProcess>(this),
                    &CgroupsPerfEventIsolatorProcess::_sample,
                    Clock::now() + flags.perf_interval,
